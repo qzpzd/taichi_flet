@@ -39,7 +39,8 @@ class Song(Row):
     每首歌的展示条
     """
 
-    def __init__(self, song: DataSong, select_callback):
+    def __init__(self, song: DataSong, select_callback, parent: 'ViewPage'):
+        self.parent = parent
         self.song: DataSong = song
         self.select_callback = select_callback
         self.photo = Image(
@@ -67,18 +68,12 @@ class Song(Row):
         )
         self.addbutton = flet.IconButton(
             icon=flet.icons.ADD_CIRCLE,
-            on_click=self.on_add_to_playlist,
+            on_click=self.parent.add_song_to_my_playlist,
             tooltip= "我的歌单")
-        
-        self.delete_button = flet.IconButton(
-            icon=flet.icons.DELETE,
-            tooltip="删除歌曲",
-            on_click=self.on_delete_to_playlist,
-        )
-        self.singer_button = Row([self.singer, self.addbutton, self.delete_button], spacing=1)  
+        self.singer_button = Row([self.singer, self.addbutton], spacing=1)  
         self.photo_music = Row([self.photo, self.music],spacing=1)
         self.container = Container(
-            content=Row([ self.photo_music,self.singer_button], spacing=30),
+            content=Row([ self.photo_music,self.singer_button], spacing=50),
             on_click=self.on_click,
             bgcolor=colors.BLUE_GREY_300,
             padding=5,
@@ -88,9 +83,15 @@ class Song(Row):
             border=border.all(width=1),
         )
 
+        self.delete_button = flet.IconButton(
+            icon=flet.icons.DELETE,
+            tooltip="删除歌曲",
+            on_click=self.parent.delete_song_from_my_playlist,
+        )
+
         self.container.content = Row(
-            [self.photo_music, self.singer_button],
-            spacing=30,
+            [self.photo_music, self.singer_button, self.delete_button],
+            spacing=50,
         )
 
         super(Song, self).__init__(
@@ -100,7 +101,6 @@ class Song(Row):
             wrap=True,
         )
         self.__selected = False
-        self.in_my_playlist = False  # 新增属性
 
     @property
     def selected(self):
@@ -124,25 +124,21 @@ class Song(Row):
 
     def un_select(self):
         self.selected = False
-    
-    # 在 Song 类中修改如下：
-    def on_add_to_playlist(self, event):  # 添加 event 参数
-        song_data = self.song
-        if song_data not in my_playlist_songs:
-            print(song_data)
-            my_playlist_songs.append(song_data)
-            # 更新“我的歌单”页的内容，这里假设已有一个 my_playlist_music_list 专门用于我的歌单内容
-            my_playlist_list.set_musics(song_data, first=False)
-        # add_song_to_my_playlist(self,song_data=self.song)
 
-    def on_delete_to_playlist(self, event):  # 添加 event 参数
-        song_data = self.song
-        if song_data  in my_playlist_songs:
-            my_playlist_songs.remove(song_data)
-        # 从“我的歌单”的音乐列表中移除对应的 Song 对象
-        
-        my_playlist_list.remove_music(self)
-        # self.parent.delete_song_from_my_playlist(self,song_data=self.song)
+    # def add_song_to_my_playlist(self, e):
+    #     if self.song not in self.parent.my_playlist_songs:
+    #         self.parent.my_playlist_songs.append(self.song)
+    #         song_with_delete = Song(
+    #             song=self.song,
+    #             select_callback=self.select_callback,
+    #             delete_callback=self.delete_song_from_my_playlist,
+    #         )
+    #         self.parent.my_playlist_list.set_musics(song_with_delete)
+
+    # def delete_song_from_my_playlist(self, e):
+    #     self.parent.my_playlist_songs.remove(self.song)
+    #     self.parent.my_playlist_list.remove_music(self)
+
 
 class PlayAudio(Audio):
     def __init__(self, song: DataSong, *args, **kwargs):
@@ -230,7 +226,7 @@ class MusicList(Column):
     def set_musics(self, data: DataSong, first=False):
         if first:
             self.list.controls.clear()
-        self.list.controls.append(Song(data, self.middle_select_callback))
+        self.list.controls.append(Song(data, self.middle_select_callback, parent=ViewPage))
         # self.update()
 
     def next_music(self):
@@ -248,19 +244,93 @@ class MusicList(Column):
                     _song.un_select()
         self.select_callback(song)
 
+    def remove_music(self, song):
+        # Remove the song from the "我的歌单" tab
+        self.list.controls.remove(song)
+# from dataclasses import dataclass, field
+# from typing import List
+# @dataclass
+# class DataSong:
+#     photo_url: str  # 图片链接
+#     big_photo_url: str  # 大图链接
+#     music_name: str  # 歌曲名称
+#     singer_name: str  # 歌手名称
+#     music_url: Optional[str] = field(default=None)  # 音乐链接
+# class MusicList(Column):
+#     """
+#     展示查询音乐列表的区域
+#     """
 
-    def remove_music(self, song: Song):
-        # 遍历GridView控件中的所有子控件（Song对象）
-        for index, control in enumerate(self.list.controls):
-            if control is song:
-                print("haha")
-                # 找到匹配的Song对象时，移除它
-                del self.list.controls[index]
-                break
+#     def __init__(self, select_callback):
+#         self.select_callback = select_callback
+#         self.page = 1  # 当前页数
+#         self.songs_per_page = 10  # 每页显示的歌曲数量
+#         self.song_data = []  # 存储所有音乐数据
+#         self.current_index = 0  # 当前索引位置
+#         self.list = flet.GridView(
+#             expand=1,
+#             runs_count=1,
+#             max_extent=350,
+#             child_aspect_ratio=5,
+#             spacing=2,
+#             run_spacing=5,
+#             padding=100,
+#         )
+#         # self.prev_button = flet.FilledButton("上一页", on_click=self.prev_page)
+#         # self.next_button = flet.FilledButton("下一页", on_click=self.next_page)
+#         # self.page_label = flet.Text("页数: 1")
+#         super(MusicList, self).__init__(
+#             controls=[self.list, self.prev_button, self.page_label, self.next_button],
+#             expand=True,
+#         )
 
-        # 更新GridView以反映新的布局和内容
-        self.list.update()
-    
+#     def set_musics(self, data: List[DataSong], first=False):
+#         if first:
+#             self.song_data = data  # 第一次设置音乐数据时，保存全部数据
+#             self.page = 1  # 重置页数
+#             self.current_index = 0  # 重置当前索引位置
+#             self.update_page_controls()
+#         else:
+#             self.song_data.extend(data)  # 添加更多音乐数据
+
+#     def next_music(self):
+#         c = self.list.controls
+#         for i in range(len(c) - 1):
+#             if c[i].selected:
+#                 c[i + 1].on_click(None)
+#                 return
+#         c[0].on_click(None)
+
+#     def update_page_controls(self):
+#         start_idx = self.current_index
+#         end_idx = start_idx + self.songs_per_page
+#         current_page_songs = self.song_data[start_idx:end_idx]
+
+#         self.list.controls.clear()
+#         for song_data in current_page_songs:
+#             self.list.controls.append(Song(song_data, self.middle_select_callback))
+#         self.page_label.text = f"页数: {self.page}"
+#         self.update()
+
+#     def prev_page(self, button):
+#         if self.page > 1:
+#             self.page -= 1
+#             self.current_index -= self.songs_per_page
+#             self.update_page_controls()
+
+#     def next_page(self, button):
+#         max_pages = (len(self.song_data) - 1) // self.songs_per_page + 1
+#         if self.page < max_pages:
+#             self.page += 1
+#             self.current_index += self.songs_per_page
+#             self.update_page_controls()
+
+#     def middle_select_callback(self, song: Song):
+#         for _song in self.list.controls:
+#             if _song.selected:
+#                 if _song != song:
+#                     _song.un_select()
+#         self.select_callback(song)
 
 class AudioInfo(Row):
     """
@@ -495,7 +565,19 @@ class RightSearchSection(Column):
             # horizontal_alignment="center",
             expand=True,
         )
-        
+class RightSearchSection(Column):
+    """右侧区域"""
+
+    def __init__(self, parent: "ViewPage"):
+        self.parent = parent
+        self.music_list = MusicList(self.parent.select_callback)
+        self.search_content = SearchCompoment(self.parent)
+        super(RightSearchSection, self).__init__(
+            controls=[self.search_content, self.music_list],
+            # alignment="center",
+            # horizontal_alignment="center",
+            expand=True,
+        )
 
 class LeftPlaySection(Column):
     """左侧区域"""
@@ -525,19 +607,11 @@ class LeftPlaySection(Column):
 class ViewPage(Stack):
     def __init__(self, page, song: DataSong):
         self.song = song
-        global my_playlist_songs
-        my_playlist_songs = []  # 新增属性，用于存储我的歌单中的歌曲数据（DataSong）
+        self.my_playlist_songs = []
+        self.my_playlist_list = MusicList(self.select_callback) 
         self.music_api = HIFINI
         self.left_widget = LeftPlaySection(self)
         self.right_widget = RightSearchSection(self)
-        # 确保在 ViewPage 初始化时为“我的歌单”tab 设置正确的音乐列表控件
-        # 假设以下片段应该出现在 ViewPage 的初始化部分：
-        global my_playlist_list
-        my_playlist_list = MusicList(self.select_callback_for_my_playlist)  # 创建一个新的 MusicList 用于我的歌单
-        my_playlist_tab_content = flet.Container(
-            content=my_playlist_list,
-            alignment=flet.alignment.center,
-        )
         self.row = Column(
             controls=[self.right_widget, self.left_widget],
             # alignment="center",
@@ -556,7 +630,9 @@ class ViewPage(Stack):
             ),
             flet.Tab(
                 text="我的歌单",
-                content=my_playlist_tab_content,
+                content=flet.Container(
+                    content=Row(self.my_playlist_songs) , alignment=flet.alignment.center
+                ),
             ),
         ],
         expand=1,
@@ -613,21 +689,19 @@ class ViewPage(Stack):
 
         self.update()
 
-    
-    # def add_song_to_my_playlist(self, song_data: DataSong):
-    #     if song_data not in my_playlist_songs:
-    #         my_playlist_songs.append(song_data)
-    #         # 更新“我的歌单”页的内容，这里假设已有一个 my_playlist_music_list 专门用于我的歌单内容
-    #         my_playlist_list.set_musics(song_data, first=False)
+    def add_song_to_my_playlist(self):
+        if self.song not in self.my_playlist_songs:
+            self.my_playlist_songs.append(self.song)
+            song_with_delete = Song(
+                song=self.song,
+                select_callback=self.select_callback,
+                delete_callback=self.delete_song_from_my_playlist,
+            )
+            self.my_playlist_list.set_musics(song_with_delete)
 
-    # def delete_song_from_my_playlist(self, song_data: DataSong):
-    #     my_playlist_songs.remove(song_data)
-    #     # 从“我的歌单”的音乐列表中移除对应的 Song 对象
-    #     my_playlist_list.remove_music(song_data)
-    
-    # 还需要定义 select_callback_for_my_playlist 函数，以便在选择我的歌单中的歌曲时执行相应的播放逻辑
-    def select_callback_for_my_playlist(self, song_data: DataSong):
-        self.left_widget.play_music(song_data)  # 使用 song.data 因为在这里 Song 只是“我的歌单”中的UI元素，不是原始的 DataSong 对象
+    def delete_song_from_my_playlist(self):
+        self.my_playlist_songs.remove(self.song)
+        self.my_playlist_list.remove_music(self)
 
         
 def main(page: Page):

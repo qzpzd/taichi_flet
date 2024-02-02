@@ -4,7 +4,8 @@ from random import randint
 
 from flet import Container, alignment, animation, transform, Stack, Text
 from flet import Switch, Page
-
+import sys
+sys.path.append("./")
 from statics import BIG_TAICHI, CLOUD, GONGZHONGHAO
 from utils import one_shot_thread
 
@@ -38,42 +39,41 @@ class ThemeSwitch(Switch):
 class ViewPage(Stack):
     def __init__(self, page):
         self.page = page
-        self.bg = Container(
-            content=BIG_TAICHI,
-            alignment=alignment.center,
-            rotate=transform.Rotate(0, alignment=alignment.center),
-            animate_rotation=animation.Animation(duration=2000, curve="linear"),
-            on_animation_end=self.auto_animate,
-            expand=True,
-        )
-        self.clouds = []
-        for i in range(randint(10, 20)):
-            left = randint(1, int(self.page.width))
-            top = randint(1, int(self.page.height))
-            width = randint(20, 80)
-            height = int(width / 1.125)
-            CLOUD.width = width
-            CLOUD.height = height
-            _cloud = Container(
-                content=CLOUD,
-                width=width,
-                height=height,
-                left=left,
-                top=top,
-                animate_opacity=randint(1800, 20000),
-                on_animation_end=partial(self.auto_cloud_animate, index=i),
-                opacity=0,
-            )
-            self.clouds.append(_cloud)
+        # self.bg = Container(
+        #     content=BIG_TAICHI,
+        #     alignment=alignment.center,
+        #     rotate=transform.Rotate(0, alignment=alignment.center),
+        #     animate_rotation=animation.Animation(duration=2000, curve="linear"),
+        #     on_animation_end=self.auto_animate,
+        #     expand=True,
+        # )
+        # self.clouds = []
+        # for i in range(randint(10, 20)):
+        #     left = randint(1, int(self.page.width))
+        #     top = randint(1, int(self.page.height))
+        #     width = randint(20, 80)
+        #     height = int(width / 1.125)
+        #     CLOUD.width = width
+        #     CLOUD.height = height
+        #     _cloud = Container(
+        #         content=CLOUD,
+        #         width=width,
+        #         height=height,
+        #         left=left,
+        #         top=top,
+        #         animate_opacity=randint(1800, 20000),
+        #         on_animation_end=partial(self.auto_cloud_animate, index=i),
+        #         opacity=0,
+        #     )
+        #     self.clouds.append(_cloud)
         self.theme_switch = ThemeSwitch(self.page)
-        self.gzh_img = Container(content=GONGZHONGHAO, right=5, bottom=5)
+        # self.gzh_img = Container(content=GONGZHONGHAO, right=5, bottom=5)
         self.warn_text = Text("数据均来源于网络，与本人无关！请自行判断数据的准确性！", right=20, bottom=1)
         super(ViewPage, self).__init__(
-            controls=[self.bg, self.theme_switch, self.gzh_img, self.warn_text]
-            + self.clouds,
+            controls=[self.warn_text],
             expand=True,
         )
-        self.init_animate()
+        # self.init_animate()
 
     def init_event(self):
         self.auto_animate(None)
@@ -89,10 +89,10 @@ class ViewPage(Stack):
         self.bg.rotate.angle -= pi
         self.page.update()
 
-    def auto_cloud_animate(self, e, index):
-        cloud = self.clouds[index]
-        if cloud.opacity == 0:
-            cloud.opacity = 1
-        elif cloud.opacity == 1:
-            cloud.opacity = 0
-        self.page.update()
+    # def auto_cloud_animate(self, e, index):
+    #     cloud = self.clouds[index]
+    #     if cloud.opacity == 0:
+    #         cloud.opacity = 1
+    #     elif cloud.opacity == 1:
+    #         cloud.opacity = 0
+    #     self.page.update()

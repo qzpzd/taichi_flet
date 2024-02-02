@@ -17,7 +17,7 @@
 ---
 
 
- 基于flet的一款windows桌面应用，实现了浏览图片、音乐、小说、各种资源的功能，还有gpt、ai绘画等高级功能。
+ 基于flet的一款windows桌面应用，实现了爬取图片、音乐、小说、各种资源的功能。
 
  特点：多功能娱乐软件，界面美观、简洁。
  
@@ -25,64 +25,69 @@
  
 会持续更新
 
-## 最新版本(2024年01月26日)
+## 最新版本(23年8月17日)
 
-为保证太极正常使用，请【安装2.8.0版本】
+电脑版 《太极》2.6.5版
 
-电脑版《太极》2.8.0版本下载地址
+https://wwtn.lanzout.com/iwlsk16ccypg
 
-https://wwtn.lanzout.com/i8vGv1mdu8ch
+密码:8888
 
----
+___
 
-## 功能介绍
+安卓版《太极ChatGPT》0.2.0下载地址(仅VIP可用)
+
+https://wwtn.lanzout.com/ibkpF16m45ze
+
+密码:8888
+
+___
+
+安卓版《歌单助手》0.1.8下载地址
+
+https://wwtn.lanzout.com/iv2Wj153tejc
+
+密码:6666
+
+
+功能介绍
 
 1. 首页
 
-![首页](https://github.com/cuifengcn/TAICHI-flet/assets/38805177/5969c1f1-c3c9-414b-a842-722df471fadb)
-
-右上角可切换主题、进行全局个性化设置、显示热搜榜，点击左上角时间可使用默认壁纸。
+![首页](https://user-images.githubusercontent.com/38805177/227417740-8413c23d-ab12-4112-8edf-909a333ed627.png)
 
 2. 观山——图片浏览，风景图、妹子图、二次元图等
-   
-![观山](https://github.com/cuifengcn/TAICHI-flet/assets/38805177/75c6da1f-27ef-4497-b78f-fa2f8a8a33a9)
 
-右下角可选择下载、设为壁纸、调整壁纸模糊度等。
+![观山](https://user-images.githubusercontent.com/38805177/227417883-bce5605f-0d20-412e-9ed8-91a30eb83655.png)
 
 3. 听雨——音乐收藏、试听
 
-![听雨](https://github.com/cuifengcn/TAICHI-flet/assets/38805177/dfb3de06-ea51-4474-a1e7-a314b888e7f8)
-
-点击底部头像进入沉浸页，点击歌词打开桌面歌词。
+![听雨](https://user-images.githubusercontent.com/38805177/227417991-9cdf4df1-c122-43ee-a5e7-56c6a15268b4.png)
 
 4. 修仙——小说搜索、阅读
 
-![修仙](https://github.com/cuifengcn/TAICHI-flet/assets/38805177/a6b1aa65-64c3-436d-bc72-1bf0d47bfe07)
+![修仙](https://user-images.githubusercontent.com/38805177/227418187-6de03b81-1cb3-4fa5-a175-4832a058d959.png)
 
-可选择加入书架，可选择听小说模式。
+5. 抚琴——云盘资源搜索
 
-5. 抚琴——云盘资源、软件资源搜索
+![抚琴](https://user-images.githubusercontent.com/38805177/227418251-6a177423-ac32-4e54-b3c3-c65e91841b35.png)
 
-![抚琴](https://github.com/cuifengcn/TAICHI-flet/assets/38805177/fd5431cd-6dec-4305-97fb-c75257a07aca)
+6. 小站——资源查找
 
-6. 小站——资源、影视查找
-
-![小站](https://github.com/cuifengcn/TAICHI-flet/assets/38805177/5ddeff61-9af0-45d2-9c00-e159dfbeb295)
+![小站](https://user-images.githubusercontent.com/38805177/227418324-0c4c44a9-5050-4643-9864-b5cd7ccdf4e4.png)
 
 7. 览竹——动漫搜索、观看
 
-![览竹](https://github.com/cuifengcn/TAICHI-flet/assets/38805177/51112fa4-4bd3-41e5-b3a1-22390554f8b9)
+![览竹](https://user-images.githubusercontent.com/38805177/227418394-bcecfec5-1518-438c-bd56-5bc75c58d514.png)
 
-8. 论道——ChatGPT、AI绘画(高级功能)
+8. 论道——ChatGPT(已增加ai绘画)
 
-![论道](https://github.com/cuifengcn/TAICHI-flet/assets/38805177/72cb7309-6db8-4e8e-bee1-9ec61adbcc73)
-
-![论道2](https://github.com/cuifengcn/TAICHI-flet/assets/38805177/f7d15b42-d45a-4683-b057-7b9966940e50)
+![论道](https://user-images.githubusercontent.com/38805177/232374249-4bfa578f-85e9-4217-8d94-a3320aaf4de4.png)
 
 
-9. 宝库——几十种工具
+9. 藏卷——资源、网站推荐
 
-![宝库](https://github.com/cuifengcn/TAICHI-flet/assets/38805177/535bb4a8-8992-4751-969a-089e8eae44df)
+![藏卷](https://user-images.githubusercontent.com/38805177/227418484-b265bab7-6f75-491a-9811-5a0959548e4b.png)
 
 ## 关注公众号了解更多功能
 

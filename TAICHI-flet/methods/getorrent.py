@@ -1,10 +1,19 @@
 # --coding:utf-8--
 from dataclasses import dataclass, field
+import re
 from typing import List
 from urllib.parse import quote
 
 from utils import HTMLSession
+from bs4 import BeautifulSoup
+import requests
+from time import sleep
+import time
 
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 class Base:
     name = ""
@@ -33,6 +42,7 @@ class DataBTDetail:
 class DataBTDetailSubDetail:
     name: str  # 标题
     size: str  # 文件总大小
+    
 
 
 @dataclass
@@ -46,16 +56,18 @@ class DataBT:
 
 class BTSow(Base):
     name = "磁力猫"
-    base_url = "https://btsow.beauty/search/{keyword}/page/{page_count}"
+    # base_url = "https://btsow.beauty/search/{keyword}/page/{page_count}"
+    base_url ='https://clm.clmapp1.xyz/cllj.php?name={keyword}&sort=&page={page_count}'
 
     @classmethod
     def search(cls, keyword, page_count, fuzzy_match=False):
         res = DataBT(name=cls.name, keyword=keyword, curr_page=page_count)
         session = HTMLSession()
         page = session.get(cls.base_url.format(keyword=keyword, page_count=page_count))
-        page_list = page.html.xpath('//ul[@class="pagination pagination-lg"]')
+        # print('page:',page)
+        page_list = page.html.xpath('//ul[@class="pagination"]')
         if page_list:
-            next_page = page_list[0].xpath('//a[@name="nextpage"]')
+            next_page = page_list[0].xpath('//*[@id="Search_list_wrapper"]/ul/li[4]/a')
             if next_page:
                 next_page = True
             else:
@@ -64,23 +76,45 @@ class BTSow(Base):
             next_page = False
         res.next_page = next_page
 
-        result = page.html.xpath('/html/body/div[2]/div[4]/div[@class="row"]')
+        result = page.html.xpath('//*[@id="Search_list_wrapper"]/li')
+        # print(result)
+        
+        
+        
         for x in result:
-            tmp = x.xpath("//a[@title]")[0]
-            title = tmp.attrs["title"]
-            if not fuzzy_match:  # 需要精确匹配
-                if keyword not in title:
-                    continue
+            tmp = x.xpath('//a[@class="SearchListTitle_result_title"]')[0]
+            
+            title1 = x.xpath('//a[@class="SearchListTitle_result_title"]/text()')
+            
+            title2 = x.xpath('//a[@class="SearchListTitle_result_title"]/em/text()')
+            if title1==None:
+                title = title2[0]
+            elif len(title1)==2:
+                title = title1[0] + title2[0] + title1[1] 
+            elif len(title1)==2 and len(title2)==2:
+                title = title1[0] + title2[0] + title1[1] + title2[0]
+            else:
+                title = title1[0] + title2[0]
+            # print(title)
+           
+            # if not fuzzy_match:  # 需要精确匹配
+            #     if keyword not in title:
+            #         continue
             detail_url = tmp.attrs.get("href")
-            size = x.xpath(
-                '//div[contains(@class, "size") and contains(@class, "hidden-xs")]'
-            )[0].text
-            date = x.xpath(
-                '//div[contains(@class, "date") and contains(@class, "hidden-xs")]'
-            )[0].text
+            
+            size = str(x.xpath('//*[@class="Search_list_info"]/em[1]/text()')[0])[5:]
+            # print(size)
+            
+            date = str(x.xpath('//*[@class="Search_list_info"]/em[2]/text()')[0])[5:]
+            # print(date)
             _hash = detail_url.split("/")[-1]
-            magnet = "magnet:?xt=urn:btih:" + _hash + "&dn=" + quote(title)
-
+            
+            detali_page = session.get('https://clm.clmapp1.xyz/'+_hash)
+           
+            magnet = detali_page.html.xpath('//*[@id="val"]/text()')[0]
+            # print(magnet)
+            # magnet = "magnet:?xt=urn:btih:" + _hash + "&dn=" + quote(title[0])
+            
             res.result.append(
                 DataBTDetail(
                     title=title,
@@ -91,19 +125,65 @@ class BTSow(Base):
                     source=cls.name,
                 )
             )
+            
         return res
 
     @classmethod
     def detail(cls, url):
+        
         res: List[DataBTDetailSubDetail] = []
-        session = HTMLSession()
-        page = session.get("http:" + url)
-        detail_list = page.html.xpath('//div[@class="detail data-list"]')[1].xpath(
-            '//div[@class="row"]'
-        )[1:]
-        for detail in detail_list:
-            name, size = detail.text.split("\n")[:2]
-            res.append(DataBTDetailSubDetail(name, size))
+        
+        # 创建一个Chrome浏览器实例
+        driver = webdriver.Chrome()
+
+        try:
+            # 打开网页
+            driver.get("https://clm.clmapp1.xyz" + url[1:])
+
+            # 使用JavaScript等待渲染完成
+            driver.execute_script("return document.readyState == 'complete';")
+
+            # 使用显式等待来等待元素加载完成
+            wait = WebDriverWait(driver, 5)  # 增加等待时间到60秒
+            wait.until(EC.presence_of_element_located((By.ID, "wjgs")))
+
+            # 使用JavaScript获取内容
+            js_script = """
+            var elements = document.querySelectorAll('ul#sdsdsdsdafwe li');
+            var result = [];
+
+            for (var i = 0; i < elements.length; i++) {
+                var parentElement = elements[i].querySelector('div.File_list_info');
+                var name = parentElement.childNodes[0].textContent.trim();
+                var sizeElement = parentElement.querySelector('div.File_btn');
+                var size = sizeElement.textContent.trim();
+                
+                result.push(name + ' ' + size);
+            }
+
+            return result;
+
+            """
+            content = driver.execute_script(js_script)
+
+            for line in content:
+                parts = line.split()
+                # print(len(parts))
+                if len(parts) >= 3:
+                    # 将前面的元素合并，去掉空格
+                    name = " ".join(parts[:-2]).strip()
+                    
+                    # 倒数第二和倒数第三之间的空格保留
+                    size = f"{parts[-2]} {parts[-1]}".strip()
+                    
+                    res.append(DataBTDetailSubDetail(name, size))
+                else:
+                    print(f"Skipping line: {line}")
+
+        finally:
+            # 关闭浏览器
+            driver.quit()
+
         return res
 
 
@@ -121,8 +201,9 @@ class TorrentKitty(Base):
         html = page.html
         page_list = html.xpath('//div[@class="pagination"]')
         if page_list:
-            page_btn = page_list[0].xpath('//span[@class="disabled"]')
-            if page_btn and page_btn[0].text == "»":
+            page_btn = page_list[0].xpath('//*[@id="Search_list_wrapper"]/ul/li[8]/a')
+          
+            if page_btn and page_btn[0].text == "首页":
                 next_page = False
             else:
                 next_page = True
@@ -130,12 +211,12 @@ class TorrentKitty(Base):
             next_page = False
         res.next_page = next_page
 
-        results = html.xpath('//table[@id="archiveResult"]/tr')[1:]
+        results = html.xpath('//*[@id="Search_list_wrapper"]')[1:]
         for tr in results:
             if "No result" in tr.text:
                 return res
             title, size, date = tr.text.split("\n")[:3]
-            magnet = tr.xpath('//a[@rel="magnet"]')[0].attrs.get("href")
+            magnet = tr.xpath('//*[@id="dw6b2aeb83361e8677dfa9614ef54dbf08"]')[0].attrs.get("href")
             detail_url = cls.url + tr.xpath('//a[@rel="information"]')[0].attrs.get(
                 "href"
             )

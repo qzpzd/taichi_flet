@@ -1,6 +1,8 @@
 import random
 from typing import List, Generator, Optional
-
+import os
+import sys
+sys.path.append(os.getcwd())
 from utils import HTMLSession
 
 
@@ -42,7 +44,7 @@ class _Base:
 
 # class VMGirls:
 #     page_url = "https://www.vmgirls.com/page/{}/"
-#
+
 #     @classmethod
 #     def get_image_urls(cls, base_url):
 #         session = HTMLSession()
@@ -143,43 +145,42 @@ class ToMeinv(_Base):
         return res
 
 
-class VMGirls(_Base):
-    base_url = "https://www.vmgirls.net/"
-    page_url = "https://www.vmgirls.net/page/{page_num}"
-    max_page = 132
-    page_list = []
+# class VMGirls(_Base):
+#     base_url = "https://www.vmgirls.net/"
+#     page_url = "https://www.vmgirls.net/page/{page_num}"
+#     max_page = 132
+#     page_list = []
 
-    @classmethod
-    def _get_image_url(cls, detail_url):
-        # 获取里面的图片
-        session = HTMLSession()
-        resp = session.get(detail_url)
-        photos = resp.html.xpath('//div[@class="nc-light-gallery"]//img[@alt and @src]')
-        for photo in photos:
-            yield photo.attrs["src"]
+#     @classmethod
+#     def _get_image_url(cls, detail_url):
+#         # 获取里面的图片
+#         session = HTMLSession()
+#         resp = session.get(detail_url)
+#         photos = resp.html.xpath('//div[@class="nc-light-gallery"]//img[@alt and @src]')
+#         for photo in photos:
+#             yield photo.attrs["src"]
 
-    @classmethod
-    def _get_page_list(cls, page_num: int):
-        # 获取此page下面的所有相关url
-        url = cls.page_url.format(page_num=page_num)
-        session = HTMLSession()
-        resp = session.get(url, timeout=10, verify=False)
-        hrefs = resp.html.xpath(
-            '//div[@class="site-main"]//a[@class="media-content" and @href]'
-        )
-        res = []
-        for a in hrefs:
-            a = a.attrs["href"]
-            res.append(a)
-        return res
+#     @classmethod
+#     def _get_page_list(cls, page_num: int):
+#         # 获取此page下面的所有相关url
+#         url = cls.page_url.format(page_num=page_num)
+#         session = HTMLSession()
+#         resp = session.get(url, timeout=10, verify=False)
+#         hrefs = resp.html.xpath(
+#             '//div[@class="site-main"]//a[@class="media-content" and @href]'
+#         )
+#         res = []
+#         for a in hrefs:
+#             a = a.attrs["href"]
+#             res.append(a)
+#         return res
 
 
-# g = VMGirls.image_url_generator()
+# g = ToMeinv.image_url_generator()
 # for i in range(200):
 #     print(next(g))
 
 APIS = {
-    "vmgirls": VMGirls,
     "ciyuandao": CiYuanDao,
     "2meinv": ToMeinv,
 }

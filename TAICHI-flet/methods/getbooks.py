@@ -259,22 +259,25 @@ class DingDianDataNovelInfo(DataNovelInfo):
 class DingDian:
     """顶点小说"""
 
-    rank_url = "https://www.23usp.com/paihangbang/allvote.html"  # 排行榜
-    base_url = "https://www.23usp.com/"
-    all_books_url = "https://www.23usp.com/quanbuxiaoshuo/"
+    rank_url = "https://www.ddyueshu.com/paihangbang/"  # 排行榜
+    base_url = "https://www.ddyueshu.com/"
+    all_books_url = "https://www.ddyueshu.com/xiaoshuodaquan/"
     session = HTMLSession()
 
     @classmethod
     def recommend_books(cls) -> Generator[DataNovelInfo, None, None]:
         resp = cls.session.get(cls.rank_url)
-        rank_list = resp.html.xpath(
-            '//div[@class="box b2"]//li[not(@class="ltitle")]//a[@href]'
-        )
+        # print(resp.text)
+        rank_list = resp.html.xpath('//ul[@class="tli"]/li')
+        # print(rank_list)
         if not rank_list:
             return
         for a in rank_list:
-            if a.attrs.get("href") and a.attrs["href"].startswith("http"):
-                yield cls.get_book_detail(a.attrs["href"])
+            # print(a)
+            a = a.find('a')[0]
+            if a.attrs.get("href"):# and a.attrs["href"].startswith("http"):
+                # print(a.attrs["href"])
+                yield cls.get_book_detail('https://www.ddyueshu.com/'+a.attrs["href"])
 
     @classmethod
     def search_books(cls, keyword) -> Generator[DataNovelInfo, None, None]:

@@ -1,6 +1,7 @@
 import flet as ft
 from flet import padding
-
+import sys
+sys.path.append('TAICHI-flet')
 from methods.getorrent import DataBTDetail, BTSow, TorrentKitty, DataBT
 from utils import snack_bar
 
@@ -204,7 +205,8 @@ class DisplayComponent(ft.Row):
 
 class ViewPage(ft.ResponsiveRow):
     def __init__(self, page):
-        self.apis = [BTSow, TorrentKitty]
+        # self.apis = [BTSow, TorrentKitty]
+        self.apis = [BTSow]
         self.search_component = SearchComponent(self.search_callback)
         self.display_component = DisplayComponent(self)
         super(ViewPage, self).__init__(
@@ -255,8 +257,10 @@ class ViewPage(ft.ResponsiveRow):
 # def main(page: ft.Page):
 #     page.vertical_alignment = "center"
 #     page.horizontal_alignment = "center"
-#
+    
+
 #     page.add(ViewPage(page))
-#
-#
+
+
 # ft.app(target=main)
+

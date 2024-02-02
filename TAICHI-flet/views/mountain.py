@@ -1,3 +1,4 @@
+import flet
 from flet import (
     Container,
     Stack,
@@ -11,12 +12,17 @@ from flet import (
     icons,
     Dropdown,
     dropdown,
+    theme,
 )
+
+import os
+import sys
+sys.path.append(os.getcwd())
 
 from methods.getimages import CiYuanDao, ToMeinv, APIS
 from utils import snack_bar, download_named_image
 
-
+from ui import NavigationBar  # Make sure to adjust the import based on your folder structure
 class ViewPage(Stack):
     def __init__(self, page: Page):
         self.page = page
@@ -37,7 +43,7 @@ class ViewPage(Stack):
         )
         self.back_look_btn = Container(
             FloatingActionButton(
-                icon=icons.SETTINGS_BACKUP_RESTORE_ROUNDED,
+                icon=icons.SETTINGS_APPLICATIONS_ROUNDED,
                 on_click=self.back_look_image,
                 width=50,
             ),
@@ -77,6 +83,17 @@ class ViewPage(Stack):
             opacity=0.3,
             animate_opacity=300,
         )
+        self.set_bg_btn = Container(
+            FloatingActionButton(
+                icon=icons.SETTINGS,
+                on_click=self.set_bg,
+                width=50,
+            ),
+            opacity=0.2,
+            right=20,
+            top=80,
+        )
+        self.image_url = None
         super(ViewPage, self).__init__(
             controls=[
                 self.content_area,
@@ -84,6 +101,7 @@ class ViewPage(Stack):
                 self.save_btn,
                 self.next_btn,
                 Container(self.resource_select, top=10, right=10),
+                self.set_bg_btn,  # Add the new button here
             ],
             expand=True,
         )
@@ -95,9 +113,15 @@ class ViewPage(Stack):
         if self.content_area.content is None:
             self.fresh_image(None)
 
+    def set_bg(self, e):
+        if self.content_area.content is not None:
+            self.image_url = self.urls[self.resource_select.value]["values"][self.urls[self.resource_select.value]["index"]]
+            if self.image_url:
+                NavigationBar.set_background_image(self,self.image_url)  # Update the background image URL in ui.py
+
     def fresh_image(self, e):
-        self.page.splash.visible = True
-        self.page.update()
+        # self.page.splash.visible = True
+        # self.page.update()
         try:
             _type = self.resource_select.value
             img_url = next(self.generators[_type])
@@ -113,12 +137,12 @@ class ViewPage(Stack):
             self.update()
         except Exception as e:
             snack_bar(self.page, f"获取失败: {e}")
-        self.page.splash.visible = False
-        self.page.update()
+        # self.page.splash.visible = False
+        # self.page.update()
 
     def back_look_image(self, e):
-        self.page.splash.visible = True
-        self.page.update()
+        # self.page.splash.visible = True
+        # self.page.update()
         try:
             _type = self.resource_select.value
             self.urls[_type]["index"] -= 1
@@ -129,8 +153,8 @@ class ViewPage(Stack):
                 self.update()
         except Exception as e:
             snack_bar(self.page, f"获取失败: {e}")
-        self.page.splash.visible = False
-        self.page.update()
+        # self.page.splash.visible = False
+        # self.page.update()
 
     def save_img(self, e):
         try:
@@ -155,3 +179,13 @@ class ViewPage(Stack):
         else:
             self.back_look_btn.opacity = 1
         self.update()
+
+# def main(page: flet.Page):
+#     page.title = "aaaa"
+#     a = ViewPage(page)
+#     page.add(a)
+
+
+# flet.app(
+#     target=main,
+# )

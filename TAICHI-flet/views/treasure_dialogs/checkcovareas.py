@@ -125,3 +125,15 @@ class Dialog(BaseDialog):
             self.data_table.rows.append(row)
 
         self.update()
+
+
+
+# if __name__ == "__main__":
+#     def main(page: ft.Page):
+#         # page.vertical_alignment = "center"
+#         # page.horizontal_alignment = "center"
+
+#         page.add(Dialog(page))
+
+
+#     ft.app(target=main)

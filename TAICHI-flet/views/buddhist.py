@@ -1,5 +1,6 @@
 import flet as ft
-
+import sys
+sys.path.append('TAICHI-flet')
 from methods.getbuddhist import buddhist_dict
 from utils import snack_bar
 
@@ -77,8 +78,8 @@ class ViewPage(ft.Stack):
 #     page.title = "aaaa"
 #     a = ViewPage(page)
 #     page.add(a)
-#
-#
+
+
 # ft.app(
 #     target=main,
 # )

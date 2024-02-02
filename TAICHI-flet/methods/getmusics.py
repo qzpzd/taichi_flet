@@ -8,7 +8,14 @@ from urllib.parse import quote
 
 from utils import HTMLSession
 
+from selenium import webdriver
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.edge.service import Service
+from lxml import etree
 
+from msedge.selenium_tools import Edge, EdgeOptions
 @dataclass
 class DataSong:
     photo_url: str  # 图片链接
@@ -20,55 +27,143 @@ class DataSong:
 
 class HIFINI:
     headers = {
-        # "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-        # "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/106.0.0.0 Safari/537.36",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36",
         "referer": "https://www.hifini.com",
     }
-    search_url = "https://www.hifini.com/search-{target}-{page}.htm"
+    search_url = "https://www.hifini.com/search-{target}-1-{page}.htm"
     recommend_url = "https://www.hifini.com/"
     base_url = "https://www.hifini.com/"
 
     @classmethod
-    def search_musics(cls, target, page=1) -> Generator[DataSong, None, None]:
+    def search_musics(cls, target, page=1) ->  List[Generator[DataSong, None, None]]:
+        result = []
         if not target:
             for music in cls.recommend_musics():
-                yield music
+                # yield music
+                result.append(music)
         else:
             session = HTMLSession(cls.headers)
             quota_target = quote(target).replace("%", "_")
             url = cls.search_url.format(target=quota_target, page=page)
-            res = session.post(url)
-            if res.status_code != 200:
-                yield False, res.text
-            else:
-                body = res.html.xpath('//div[@class="media-body"]/div/a')
-                if body:
-                    for a in body:
-                        if a.absolute_links:
-                            detail_url = a.absolute_links.pop()
-                            detail = cls.get_detail_music(detail_url, session)
-                            if not detail:
-                                continue
-                            else:
-                                yield DataSong(**detail)
+            # res = session.post(url)
+            #----------------------------------------------------
+            #1.创建一个Chrome浏览器实例
+            # driver = webdriver.Edge()
+            
+            
+            # 确保这里的路径指向刚刚下载的msedgedriver.exe
+            service = "E:\\浏览器下载文件\\edgedriver_win64\\msedgedriver.exe"
+            #2.不打开浏览器
+            options = EdgeOptions()
+            options.use_chromium = True
+            options.add_argument('headless')
+            driver = Edge(executable_path=service,options=options)
 
+            # 打开目标网页
+            driver.get(url)
+            # 使用显式等待等待页面加载完成
+            wait = WebDriverWait(driver, 10)
+            a = wait.until(EC.presence_of_element_located((By.CLASS_NAME, "media-body")))
+            # 获取网页内容
+            page_content = driver.page_source
+            # 使用lxml解析页面内容
+            html_tree = etree.HTML(page_content)
+            # 使用XPath来提取所需的元素
+            body = html_tree.xpath('//div[@class="media-body"]/div/a')
+            #-----------------------------------------------
+            
+            # if res.status_code != 200:
+            #     # yield False, res.text
+            #     print(False, res.text)
+            # else:
+            #     body = res.html.xpath('//div[@class="media-body"]/div/a')
+            
+            if body:
+                for a in body:
+                    detail_url = "https://www.hifini.com/"+a.get('href')
+                    # print(detail_url)
+                    detail = cls.get_detail_music(detail_url, session)
+                    if not detail:
+                        continue
+                    else:
+                        # yield DataSong(**detail)
+                        result.append(DataSong(**detail))
+                    
+        if len(result)<8:
+            page+=1
+            session = HTMLSession(cls.headers)
+            quota_target = quote(target).replace("%", "_")
+            url = cls.search_url.format(target=quota_target, page=page)
+            # res = session.post(url)
+            # if res.status_code != 200:
+            #     # yield False, res.text
+            #     print(False, res.text)
+            # else:
+            #     body = res.html.xpath('//div[@class="media-body"]/div/a')
+            # 创建一个Chrome浏览器实例
+            options = EdgeOptions()
+            options.use_chromium = True
+            options.add_argument('headless')
+            driver = Edge(executable_path=service,options=options)
+            # 打开目标网页
+            driver.get(url)
+            # 使用显式等待等待页面加载完成
+            wait = WebDriverWait(driver, 10)
+            a = wait.until(EC.presence_of_element_located((By.CLASS_NAME, "media-body")))
+            # 获取网页内容
+            page_content = driver.page_source
+            # 使用lxml解析页面内容
+            html_tree = etree.HTML(page_content)
+            # 使用XPath来提取所需的元素
+            body = html_tree.xpath('//div[@class="media-body"]/div/a')
+            if body:
+                for a in body:
+                    detail_url = "https://www.hifini.com/"+a.get('href')
+                    # print(detail_url)
+                    detail = cls.get_detail_music(detail_url, session)
+                    if not detail:
+                        continue
+                    else:
+                        # yield DataSong(**detail)
+                        result.append(DataSong(**detail))
+
+        return result
     @classmethod
     def recommend_musics(cls) -> List[Generator[DataSong, None, None]]:
         session = HTMLSession(cls.headers)
-        res = session.get(cls.recommend_url)
-        if res.status_code != 200:
-            yield False, res.text
-        else:
-            body = res.html.xpath('//div[@class="media-body"]/div/a')
-            if body:
-                for a in body:
-                    if a.absolute_links:
-                        detail_url = a.absolute_links.pop()
-                        detail = cls.get_detail_music(detail_url, session)
-                        if not detail:
-                            continue
-                        else:
-                            yield DataSong(**detail)
+        # res = session.get(cls.recommend_url)
+        
+        # if res.status_code != 200:
+        #     yield False, res.text
+        # else:
+        #     body = res.html.xpath('//div[@class="media-body"]/div/a')
+        #     print(body)
+        # 创建一个Chrome浏览器实例
+        service = "E:\\浏览器下载文件\\edgedriver_win64\\msedgedriver.exe"
+        options = EdgeOptions()
+        options.use_chromium = True
+        options.add_argument('headless')
+        driver = Edge(executable_path=service,options=options)
+        # 打开目标网页
+        driver.get("https://www.hifini.com/search-_E4_BD_A0_E5_A5_BD-1-1.htm")
+        # 使用显式等待等待页面加载完成
+        wait = WebDriverWait(driver, 10)
+        a = wait.until(EC.presence_of_element_located((By.CLASS_NAME, "media-body")))
+        # 获取网页内容
+        page_content = driver.page_source
+        # 使用lxml解析页面内容
+        html_tree = etree.HTML(page_content)
+        # 使用XPath来提取所需的元素
+        body = html_tree.xpath('//div[@class="media-body"]/div/a')
+        if body:
+            for a in body:
+                # if a.absolute_links:
+                detail_url = "https://www.hifini.com/"+a.get('href')
+                detail = cls.get_detail_music(detail_url, session)
+                if not detail:
+                    continue
+                else:
+                    yield DataSong(**detail)
 
     @classmethod
     def get_detail_music(cls, url, session=None):
@@ -93,6 +188,9 @@ class HIFINI:
             singer_name = re.findall(" author:'(.*?)',", strr2, re.S)
             if not singer_name:
                 return result
+            # Modify photo_url and big_photo_url to ensure they end with ".jpg"
+            photo_url[0] = photo_url[0].split('.jpg')[0] + '.jpg'
+            print(photo_url[0])
             result.update(
                 {
                     "music_url": cls.base_url + music_url[0],
@@ -102,6 +200,7 @@ class HIFINI:
                     "singer_name": singer_name[0],
                 }
             )
+            # print(result)
             return result
 
 
@@ -150,7 +249,7 @@ class LiuMingYe:
         s = md5(tar_str.encode()).hexdigest()
         params["token"] = s
         session = HTMLSession(cls.headers)
-        print(params)
+        # print(params)
         res = session.post(cls.recommend_url, params=params)
         if res.status_code != 200 or res.json()["code"] != 200:
             yield False, res.text
